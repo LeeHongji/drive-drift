@@ -1,0 +1,30 @@
+{
+  "name": "drive",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "track:report": "tsx scripts/track-report.ts",
+    "car:build": "node scripts/build-car.mjs"
+  },
+  "dependencies": {
+    "playcanvas": "2.24.3"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "@types/node": "^26.6.10",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.2"
+  },
+  "license": "MIT",
+  "description": "Browser arcade drift racing game (PlayCanvas + TypeScript)"
+}

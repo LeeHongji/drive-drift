@@ -1,0 +1,54 @@
+{
+  "name": "F6 超过 1.5 s 入账",
+  "scenario": "F6",
+  "track": "pad",
+  "start": {
+    "s": 100,
+    "kmh": 120
+  },
+  "timeline": [
+    {
+      "until": 1.5,
+      "steer": 1,
+      "throttle": 1,
+      "handbrake": true
+    },
+    {
+      "until": 9,
+      "throttle": 1
+    }
+  ],
+  "duration": 4.2,
+  "probes": [
+    [
+      "total",
+      3.5,
+      0,
+      0
+    ],
+    [
+      "total",
+      4.0,
+      50,
+      75
+    ]
+  ],
+  "expect": {
+    "banked": [
+      1,
+      1
+    ],
+    "wiped": [
+      0,
+      0
+    ],
+    "final_total": [
+      50,
+      75
+    ],
+    "firstDriftEnd": [
+      1.8,
+      2.4
+    ]
+  }
+}

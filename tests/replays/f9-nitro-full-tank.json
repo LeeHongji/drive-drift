@@ -1,0 +1,78 @@
+{
+  "name": "F9 满罐开氮气（310 km/h 起喷，按住 6 s）",
+  "scenario": "F9",
+  "track": "pad",
+  "start": {
+    "s": 100,
+    "kmh": 310,
+    "nitro": 1
+  },
+  "timeline": [
+    {
+      "until": 6,
+      "throttle": 1,
+      "nitro": true
+    },
+    {
+      "until": 99,
+      "throttle": 1
+    }
+  ],
+  "duration": 9,
+  "probes": [
+    [
+      "surge",
+      1.5,
+      0.49,
+      0.51
+    ],
+    [
+      "boost",
+      3.9,
+      1,
+      1
+    ],
+    [
+      "boost",
+      4.1,
+      0,
+      0
+    ],
+    [
+      "nitro",
+      5.9,
+      0.02,
+      0.04
+    ]
+  ],
+  "expect": {
+    "maxKmh": [
+      368,
+      378
+    ],
+    "boostTime": [
+      3.98,
+      4.03
+    ],
+    "final_kmh": [
+      309,
+      310
+    ],
+    "final_nitro": [
+      0.06,
+      0.08
+    ],
+    "shards": [
+      0,
+      0
+    ],
+    "tankFull": [
+      0,
+      0
+    ],
+    "maxAbsD": [
+      0,
+      0.01
+    ]
+  }
+}

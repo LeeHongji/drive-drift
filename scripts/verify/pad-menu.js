@@ -1,0 +1,5 @@
+(() => { const P = (window.__pad = { b: {}, axes: [0, 0, 0, 0] }); const btn = (v) => ({ pressed: !!v, touched: !!v, value: v ? 1 : 0 });
+navigator.getGamepads = () => [{ connected: true, mapping: 'standard', index: 0, id: 'harness pad', axes: P.axes, buttons: Array.from({ length: 17 }, (_, i) => btn(P.b[i])), timestamp: performance.now() }];
+window.dispatchEvent(new Event('gamepadconnected'));
+window.__tap = async (i) => { P.b[i] = 1; await new Promise((r) => setTimeout(r, 120)); P.b[i] = 0; await new Promise((r) => setTimeout(r, 180)); const a = document.activeElement; return { paused: window.__game.app.timeScale === 0, focus: a && a !== document.body ? (a.innerText || a.getAttribute('aria-label') || a.tagName).trim().slice(0, 20) : null, screen: [...document.querySelectorAll('#shell > *')].filter((e) => getComputedStyle(e).display !== 'none' && getComputedStyle(e).visibility !== 'hidden' && e.offsetParent !== null).map((e) => e.className || e.id).join(',') }; };
+return 'pad ready'; })()

@@ -1,0 +1,26 @@
+# macOS metadata (this project lives on an exFAT drive)
+._*
+.DS_Store
+
+# dependencies and build output
+node_modules/
+dist/
+.vite/
+
+# raw source assets (large; keep originals outside the build)
+assets-src/**/*.blend1
+assets-src/**/downloads/
+
+# not published (project owner's decision, 2026-11-26): material about other people's work and raw downloads
+reference/
+docs/research/*
+!docs/research/02-playcanvas-engine.md
+docs/verification/M2/00-compare-with-reference.jpg
+assets-src/car/*/
+
+# local tooling
+.claude/
+.env
+.env.*
+*.log
+.claude/settings.local.json

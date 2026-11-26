@@ -1,0 +1,70 @@
+{
+  "name": "F10 空罐漂移 5 s 回满",
+  "scenario": "F10",
+  "track": "pad",
+  "start": {
+    "s": 100,
+    "kmh": 100,
+    "nitro": 0
+  },
+  "timeline": [
+    {
+      "until": 0.2,
+      "steer": 1,
+      "throttle": 1,
+      "handbrake": true
+    },
+    {
+      "until": 99,
+      "steer": 1,
+      "throttle": 1
+    }
+  ],
+  "duration": 6,
+  "probes": [
+    [
+      "nitro",
+      2.5,
+      0.5,
+      0.56
+    ],
+    [
+      "nitro",
+      5,
+      1,
+      1
+    ],
+    [
+      "drift",
+      5.9,
+      1,
+      1
+    ]
+  ],
+  "expect": {
+    "nitroFullAt": [
+      4.55,
+      4.75
+    ],
+    "driftStarts": [
+      1,
+      1
+    ],
+    "tankFull": [
+      1,
+      1
+    ],
+    "shards": [
+      0,
+      0
+    ],
+    "final_nitro": [
+      1,
+      1
+    ],
+    "crashes": [
+      0,
+      0
+    ]
+  }
+}

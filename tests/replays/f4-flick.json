@@ -1,0 +1,73 @@
+{
+  "name": "F4 重反打换边",
+  "scenario": "F4",
+  "track": "pad",
+  "start": {
+    "s": 100,
+    "kmh": 140
+  },
+  "timeline": [
+    {
+      "until": 1.5,
+      "steer": 1,
+      "throttle": 1,
+      "handbrake": true
+    },
+    {
+      "until": 3.5,
+      "steer": -1,
+      "throttle": 1
+    }
+  ],
+  "duration": 3.5,
+  "probes": [
+    [
+      "way",
+      1.4,
+      -1,
+      -1
+    ],
+    [
+      "drift",
+      2.2,
+      1,
+      1
+    ],
+    [
+      "way",
+      3.4,
+      1,
+      1
+    ],
+    [
+      "betaDeg",
+      3.4,
+      38,
+      46
+    ],
+    [
+      "mult",
+      3.4,
+      1,
+      1
+    ]
+  ],
+  "expect": {
+    "driftStarts": [
+      1,
+      1
+    ],
+    "wayFlips": [
+      1,
+      1
+    ],
+    "links": [
+      0,
+      0
+    ],
+    "final_drift": [
+      1,
+      1
+    ]
+  }
+}

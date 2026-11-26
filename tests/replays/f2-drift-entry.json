@@ -1,0 +1,50 @@
+{
+  "name": "F2 100 km/h 打满方向入漂",
+  "scenario": "F2",
+  "track": "pad",
+  "start": {
+    "s": 100,
+    "kmh": 100
+  },
+  "timeline": [
+    {
+      "until": 3,
+      "steer": 1,
+      "throttle": 1,
+      "handbrake": true
+    }
+  ],
+  "duration": 3,
+  "probes": [
+    [
+      "betaDeg",
+      0.8,
+      40,
+      46
+    ],
+    [
+      "drift",
+      2.9,
+      1,
+      1
+    ]
+  ],
+  "expect": {
+    "driftStarts": [
+      1,
+      1
+    ],
+    "maxBetaDeg": [
+      43,
+      46.5
+    ],
+    "minDriftRadius": [
+      16,
+      30
+    ],
+    "final_way": [
+      -1,
+      -1
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "name": "F5 1.5 s 内再次入漂",
+  "scenario": "F5",
+  "track": "pad",
+  "start": {
+    "s": 100,
+    "kmh": 120
+  },
+  "timeline": [
+    {
+      "until": 1.5,
+      "steer": 1,
+      "throttle": 1,
+      "handbrake": true
+    },
+    {
+      "until": 2.6,
+      "throttle": 1
+    },
+    {
+      "until": 4,
+      "steer": -1,
+      "throttle": 1,
+      "handbrake": true
+    }
+  ],
+  "duration": 4,
+  "probes": [
+    [
+      "drift",
+      2.5,
+      0,
+      0
+    ],
+    [
+      "mult",
+      2.5,
+      1,
+      1
+    ],
+    [
+      "mult",
+      3.5,
+      2,
+      2
+    ],
+    [
+      "chain",
+      3.9,
+      80,
+      125
+    ]
+  ],
+  "expect": {
+    "driftStarts": [
+      2,
+      2
+    ],
+    "links": [
+      1,
+      1
+    ],
+    "banked": [
+      0,
+      0
+    ],
+    "wiped": [
+      0,
+      0
+    ],
+    "maxMult": [
+      2,
+      2
+    ]
+  }
+}

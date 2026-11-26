@@ -1,0 +1,949 @@
+/* HUD overlay. Palette: carbon black, off-white, acid yellow-green accent, STO orange, gold for payouts,
+   ice blue for nitro. */
+:root {
+  --ink: #f4f5f0;
+  --dim: rgba(244, 245, 240, 0.58);
+  --accent: #d7f205;
+  --orange: #ff8a1f;
+  --gold: #ffc94d;
+  --danger: #ff3b30;
+  --nitro: #9fecff;
+  --panel: rgba(9, 11, 13, 0.58);
+  --edge: rgba(244, 245, 240, 0.14);
+  --font: 'Avenir Next Condensed', 'DIN Condensed', 'Roboto Condensed', 'Arial Narrow', system-ui, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0b0d0f;
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+#hud.on {
+  opacity: 1;
+}
+
+/* ---------- drift counter ---------- */
+#drift {
+  position: absolute;
+  left: 50%;
+  top: 11%;
+  transform: translateX(-50%);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+#drift.show {
+  opacity: 1;
+}
+#drift .label {
+  font-size: 15px;
+  letter-spacing: 0.42em;
+  font-weight: 700;
+  color: var(--accent);
+  margin-right: -0.42em;
+}
+#drift .row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 14px;
+  line-height: 1;
+}
+#drift .metres {
+  font-size: 76px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+#drift .unit {
+  font-size: 26px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--dim);
+  margin-left: -6px;
+}
+#drift .mult {
+  font-size: 40px;
+  font-weight: 800;
+  font-style: italic;
+  color: #0b0d0f;
+  background: var(--accent);
+  padding: 2px 12px 2px 9px;
+  transform: skewX(-10deg);
+  text-shadow: none;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+#drift .mult.hidden {
+  visibility: hidden;
+}
+#drift .mult.bump {
+  animation: bump 0.32s ease-out;
+}
+#drift .mult.max {
+  background: var(--orange);
+}
+#drift .bar {
+  width: 260px;
+  height: 5px;
+  margin: 10px auto 0;
+  background: rgba(244, 245, 240, 0.18);
+  transform: skewX(-20deg);
+  overflow: hidden;
+}
+#drift .bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+}
+#drift.linking .bar i {
+  background: var(--orange);
+}
+
+/* Payout / wipe message, shown in the counter's place. */
+#result {
+  position: absolute;
+  left: 50%;
+  top: 13%;
+  transform: translateX(-50%);
+  font-size: 58px;
+  font-weight: 800;
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 0;
+}
+#result small {
+  display: block;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  margin-right: -0.4em;
+  text-align: center;
+}
+#result.banked {
+  color: var(--gold);
+  animation: rise 1.5s ease-out forwards;
+}
+#result.wiped {
+  color: var(--danger);
+  animation: wipe 1.5s ease-out forwards;
+}
+#result.wiped b {
+  text-decoration: line-through;
+  text-decoration-thickness: 4px;
+}
+
+/* ---------- pace note: the next drift corner and the speed to enter it at ---------- */
+#pace {
+  position: absolute;
+  left: 50%;
+  top: 25%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px 4px 10px;
+  background: var(--panel);
+  border-bottom: 3px solid var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+#pace.show {
+  opacity: 1;
+}
+#pace .arrow {
+  display: inline-block;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--accent);
+}
+#pace .kmh {
+  font-size: 44px;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1;
+}
+#pace small {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--dim);
+}
+#pace[data-state='warn'] {
+  border-color: var(--orange);
+}
+#pace[data-state='warn'] .arrow,
+#pace[data-state='warn'] .kmh {
+  color: var(--orange);
+}
+#pace[data-state='brake'] {
+  border-color: var(--danger);
+  animation: pulse 0.45s ease-in-out infinite alternate;
+}
+#pace[data-state='brake'] .arrow,
+#pace[data-state='brake'] .kmh {
+  color: var(--danger);
+}
+
+/* ---------- coaching prompt ---------- */
+#coach {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  padding: 9px 20px;
+  background: var(--panel);
+  border-left: 3px solid var(--accent);
+  backdrop-filter: blur(6px);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#coach.show {
+  opacity: 1;
+}
+#coach kbd,
+#keys kbd {
+  font-family: inherit;
+  font-weight: 800;
+  color: #0b0d0f;
+  background: var(--ink);
+  padding: 1px 8px;
+  margin: 0 4px;
+  border-radius: 3px;
+  text-shadow: none;
+}
+
+/* ---------- on-screen keys (demo) ---------- */
+#keys {
+  position: absolute;
+  left: 30px;
+  bottom: 30px;
+  display: none;
+  grid-template-columns: repeat(3, 46px);
+  grid-template-areas: '. w .' 'a s d' 'space space space';
+  gap: 6px;
+}
+#keys.show {
+  display: grid;
+}
+#keys kbd {
+  margin: 0;
+  padding: 9px 0;
+  text-align: center;
+  font-size: 18px;
+  background: rgba(244, 245, 240, 0.16);
+  color: var(--dim);
+  transition:
+    background 0.04s,
+    color 0.04s;
+}
+#keys kbd.on {
+  background: var(--accent);
+  color: #0b0d0f;
+}
+#keys [data-k='w'] {
+  grid-area: w;
+}
+#keys [data-k='a'] {
+  grid-area: a;
+}
+#keys [data-k='s'] {
+  grid-area: s;
+}
+#keys [data-k='d'] {
+  grid-area: d;
+}
+#keys [data-k='space'] {
+  grid-area: space;
+}
+
+/* ---------- lap panel ---------- */
+#laps {
+  position: absolute;
+  right: 26px;
+  top: 22px;
+  min-width: 218px;
+  padding: 12px 16px 12px 18px;
+  background: var(--panel);
+  border-left: 3px solid var(--accent);
+  backdrop-filter: blur(6px);
+}
+#laps .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  color: var(--dim);
+}
+#laps .head b {
+  color: var(--ink);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+}
+#laps .time {
+  font-size: 44px;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1.05;
+  margin: 2px 0 6px;
+}
+#laps dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 14px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+#laps dt {
+  color: var(--dim);
+  letter-spacing: 0.2em;
+  font-size: 13px;
+  align-self: center;
+}
+#laps dd {
+  margin: 0;
+  text-align: right;
+}
+#laps dd.best {
+  color: var(--accent);
+}
+#laps hr {
+  grid-column: 1 / -1;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--edge);
+  margin: 6px 0 4px;
+}
+#laps dd.score {
+  color: var(--gold);
+}
+
+/* ---------- gauge ---------- */
+#gauge {
+  position: absolute;
+  right: 30px;
+  bottom: 38px;
+  width: 260px;
+  height: 190px;
+}
+#gauge svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+#gauge .track {
+  fill: none;
+  stroke: rgba(244, 245, 240, 0.16);
+  stroke-width: 10;
+}
+#gauge .red {
+  fill: none;
+  stroke: rgba(255, 59, 48, 0.55);
+  stroke-width: 10;
+}
+#gauge .rev {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 10;
+  transition: stroke 0.08s;
+}
+#gauge.redline .rev {
+  stroke: var(--danger);
+}
+#gauge .gear {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 44px;
+  text-align: center;
+  font-size: 64px;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1;
+  color: var(--accent);
+}
+#gauge .speed {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 108px;
+  text-align: center;
+  font-size: 58px;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1;
+}
+#gauge .speed span {
+  display: block;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  margin-right: -0.4em;
+  color: var(--dim);
+}
+
+/* Nitro: the thin inner arc of the gauge. The orange stretch at its start is the part of the tank that
+   cannot start a boost; the tick closes it. */
+#gauge .ntrack,
+#gauge .nlock,
+#gauge .nfill {
+  fill: none;
+  stroke-width: 5;
+}
+#gauge .ntrack {
+  stroke: rgba(244, 245, 240, 0.13);
+}
+#gauge .nlock {
+  stroke: rgba(255, 138, 31, 0.5);
+}
+#gauge .nfill {
+  stroke: var(--nitro);
+  transition: stroke 0.12s;
+}
+#gauge .ntick {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+#gauge .nitro {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 186px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 18px;
+  letter-spacing: 0.34em;
+  color: var(--nitro);
+  transition: color 0.12s;
+  white-space: nowrap;
+}
+#gauge .nitro span {
+  margin-right: -0.34em; /* cancel the trailing letter-spacing so the label centres */
+}
+#gauge .nitro b {
+  display: none;
+  margin-left: calc(0.34em + 6px);
+  padding: 0 4px 0 8px;
+  letter-spacing: 0.2em;
+  color: #0b0d0f;
+  background: var(--nitro);
+  transform: skewX(-10deg);
+  text-shadow: none;
+}
+/* Below the activation threshold: the bar and its label go dull. */
+#gauge.n-low .nfill {
+  stroke: var(--orange);
+}
+#gauge.n-low .nitro {
+  color: var(--dim);
+}
+/* Full: white-hot arc that breathes, and the MAX tag. */
+#gauge.n-full .nfill {
+  stroke: #fff;
+  animation: nitro-ready 0.9s ease-in-out infinite alternate;
+}
+#gauge.n-full .nitro b {
+  display: inline-block;
+}
+/* Firing. */
+#gauge.n-on .nfill {
+  stroke: #fff;
+  animation: none;
+  filter: drop-shadow(0 0 6px var(--nitro));
+}
+#gauge.n-on .nitro {
+  color: #fff;
+  font-style: italic;
+}
+#gauge.n-on .nitro b {
+  display: none;
+}
+/* Firing from a full tank: the surge. */
+#gauge.n-surge .nfill {
+  stroke: var(--gold);
+  filter: drop-shadow(0 0 7px var(--orange));
+}
+#gauge.n-surge .nitro {
+  color: var(--gold);
+}
+/* A shard was collected: a glow behind the gauge and a flash along the arc's track. */
+#gauge::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -10px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(159, 236, 255, 0.5), rgba(159, 236, 255, 0) 72%);
+  opacity: 0;
+}
+#gauge.n-gain::before {
+  animation: nitro-gain 0.45s ease-out;
+}
+#gauge.n-gain .ntrack {
+  animation: nitro-track 0.45s ease-out;
+}
+#gauge.n-gain .nitro {
+  animation: nitro-pop 0.45s ease-out;
+}
+
+/* Tank just became full: a flash around the screen edges. */
+#nitroflash {
+  position: absolute;
+  inset: 0;
+  box-shadow:
+    inset 0 0 90px 14px rgba(159, 236, 255, 0.55),
+    inset 0 0 260px 40px rgba(159, 236, 255, 0.22);
+  opacity: 0;
+}
+#nitroflash.go {
+  animation: nitro-edge 1.2s ease-out;
+}
+
+/* ---------- messages ---------- */
+#lapflash {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  text-align: center;
+  font-size: 54px;
+  font-weight: 800;
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 0;
+}
+#lapflash small {
+  display: block;
+  font-size: 16px;
+  font-style: normal;
+  letter-spacing: 0.42em;
+  margin-right: -0.42em;
+  color: var(--dim);
+}
+#lapflash.show {
+  animation: flash 2.6s ease-out forwards;
+}
+#lapflash.best {
+  color: var(--accent);
+}
+
+#hint {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 18px;
+  padding: 9px 18px;
+  background: var(--panel);
+  backdrop-filter: blur(6px);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transition: opacity 0.5s ease;
+}
+#hint.hide {
+  opacity: 0;
+}
+#hint kbd {
+  font-family: inherit;
+  font-weight: 800;
+  color: #0b0d0f;
+  background: var(--ink);
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  text-shadow: none;
+}
+
+#badge {
+  position: absolute;
+  left: 26px;
+  top: 22px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: #0b0d0f;
+  background: var(--orange);
+  text-shadow: none;
+  display: none;
+}
+#badge.show {
+  display: block;
+}
+
+/* ---------- loading ---------- */
+#loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: radial-gradient(120% 90% at 50% 100%, #1b1410 0%, #0b0d0f 62%);
+  transition: opacity 0.7s ease;
+  z-index: 10;
+}
+#loading.done {
+  opacity: 0;
+  pointer-events: none;
+}
+#loading h1 {
+  margin: 0;
+  font-size: 84px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.16em;
+  margin-right: -0.16em;
+}
+#loading h1 em {
+  color: var(--accent);
+  font-style: inherit;
+}
+#loading .stage {
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  margin-right: -0.3em;
+  color: var(--dim);
+  min-height: 1.2em;
+}
+#loading .meter {
+  width: 300px;
+  height: 4px;
+  background: rgba(244, 245, 240, 0.14);
+  transform: skewX(-20deg);
+  overflow: hidden;
+}
+#loading .meter i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+#loading .error {
+  max-width: 640px;
+  padding: 0 24px;
+  color: var(--danger);
+  font-size: 16px;
+  font-family: ui-monospace, Menlo, monospace;
+  white-space: pre-wrap;
+  text-align: center;
+}
+
+@keyframes nitro-ready {
+  from {
+    filter: drop-shadow(0 0 2px var(--nitro));
+  }
+  to {
+    filter: drop-shadow(0 0 9px var(--nitro));
+  }
+}
+@keyframes nitro-gain {
+  0% {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+@keyframes nitro-track {
+  0% {
+    stroke: var(--nitro);
+  }
+}
+@keyframes nitro-pop {
+  0% {
+    transform: scale(1.35);
+    color: #fff;
+  }
+}
+@keyframes nitro-edge {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pulse {
+  from {
+    transform: translateX(-50%) scale(1);
+  }
+  to {
+    transform: translateX(-50%) scale(1.07);
+  }
+}
+@keyframes bump {
+  0% {
+    transform: skewX(-10deg) scale(1.55);
+  }
+  100% {
+    transform: skewX(-10deg) scale(1);
+  }
+}
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 14px) scale(0.9);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.06);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -6px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(1);
+  }
+}
+@keyframes wipe {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) rotate(0);
+  }
+  6% {
+    transform: translate(calc(-50% - 9px), 0) rotate(-1.5deg);
+  }
+  12% {
+    transform: translate(calc(-50% + 8px), 0) rotate(1.2deg);
+  }
+  18% {
+    transform: translate(calc(-50% - 5px), 0);
+  }
+  24% {
+    transform: translate(-50%, 0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+@keyframes flash {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.94);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  #drift .metres {
+    font-size: 56px;
+  }
+  #gauge {
+    transform: scale(0.8);
+    transform-origin: right bottom;
+  }
+  #laps {
+    transform: scale(0.85);
+    transform-origin: right top;
+  }
+  #hint {
+    display: none;
+  }
+}
+
+/* ---------- input devices ---------- */
+/* src/input/manager.ts puts input-keys, input-pad or input-touch on <html> for the device used last. */
+
+/* Hint row: spans marked .k carry keyboard glyphs, .p gamepad glyphs. */
+#hint .p {
+  display: none;
+}
+html.input-pad #hint .k {
+  display: none;
+}
+html.input-pad #hint .p {
+  display: inline;
+}
+#hint kbd.face {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 1px 0;
+  border-radius: 50%;
+  text-align: center;
+}
+
+/* Touch: the thumbs own the lower corners (wheel on the left, buttons on the right, see touch.css), so
+   the gauge moves to the top-left corner, the lap panel stays top-right, both shrink by --hud-fit, and
+   the coach prompt drops into the gap between the thumbs. The hint row is replaced by labelled buttons. */
+:root {
+  --hud-fit: 0.72;
+}
+html.input-touch #hint,
+html.input-touch #keys {
+  display: none;
+}
+html.input-touch #gauge {
+  left: calc(14px + env(safe-area-inset-left, 0px));
+  right: auto;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  bottom: auto;
+  transform: scale(var(--hud-fit));
+  transform-origin: left top;
+}
+html.input-touch #laps {
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  transform: scale(var(--hud-fit));
+  transform-origin: right top;
+}
+html.input-touch #badge {
+  left: 50%;
+  top: auto;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+}
+html.input-touch #coach {
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  /* Padding included, so on a 640 px wide phone the box stops short of the brake button (at about 70%). */
+  box-sizing: border-box;
+  max-width: 38vw;
+  padding: 6px 14px;
+  font-size: 15px;
+  white-space: normal;
+  text-align: center;
+}
+
+/* Short screens (phones in landscape, any device): the top-centre stack is compacted so the drift
+   counter, the pace note and the lap flash do not overlap each other or the touch pause button. */
+@media (max-height: 480px) {
+  :root {
+    --hud-fit: 0.56;
+  }
+  #drift {
+    top: 48px;
+  }
+  #drift .label {
+    font-size: 11px;
+  }
+  #drift .row {
+    gap: 9px;
+  }
+  #drift .metres {
+    font-size: 40px;
+  }
+  #drift .unit {
+    font-size: 16px;
+    margin-left: -4px;
+  }
+  #drift .mult {
+    font-size: 24px;
+    padding: 1px 8px 1px 6px;
+  }
+  #drift .bar {
+    width: 170px;
+    height: 4px;
+    margin-top: 6px;
+  }
+  #result {
+    top: 54px;
+    font-size: 36px;
+  }
+  #result small {
+    font-size: 11px;
+  }
+  #pace {
+    top: 128px;
+    gap: 7px;
+    padding: 2px 12px 2px 8px;
+    border-bottom-width: 2px;
+  }
+  #pace .arrow {
+    font-size: 26px;
+  }
+  #pace .kmh {
+    font-size: 28px;
+  }
+  #pace small {
+    font-size: 11px;
+  }
+  #lapflash {
+    top: 42%;
+    font-size: 34px;
+  }
+  #lapflash small {
+    font-size: 12px;
+  }
+  #coach {
+    bottom: 56px;
+    padding: 6px 14px;
+    font-size: 15px;
+  }
+  html.input-touch #coach {
+    font-size: 13px;
+  }
+}
+@media (max-height: 350px) {
+  :root {
+    --hud-fit: 0.47;
+  }
+  #pace {
+    top: 118px;
+  }
+}

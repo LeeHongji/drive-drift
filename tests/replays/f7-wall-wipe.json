@@ -1,0 +1,44 @@
+{
+  "name": "F7 连击中撞墙",
+  "scenario": "F7",
+  "track": "oval",
+  "start": {
+    "s": 100,
+    "kmh": 120
+  },
+  "timeline": [
+    {
+      "until": 3,
+      "steer": 1,
+      "throttle": 1,
+      "handbrake": true
+    }
+  ],
+  "duration": 4,
+  "expect": {
+    "wiped": [
+      1,
+      1
+    ],
+    "banked": [
+      0,
+      0
+    ],
+    "maxHit": [
+      3.01,
+      60
+    ],
+    "final_total": [
+      0,
+      0
+    ],
+    "final_drift": [
+      0,
+      0
+    ],
+    "maxAbsD": [
+      7.4,
+      8.94
+    ]
+  }
+}

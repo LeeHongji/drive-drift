@@ -1,0 +1,11 @@
+huracan-sto.glb
+
+This work is based on "2023 Lamborghini Huracán STO"
+(https://sketchfab.com/3d-models/2023-lamborghini-huracan-sto-19c4d3f7679e4765ac1f9c3be12c0899)
+by adrianaflak09 (https://sketchfab.com/adrianaflak09)
+licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes: uniformly scaled ×1.0171 to the real wheelbase, origin moved to the ground under the wheelbase
+centre, hierarchy rebuilt (Car → Body, Wheel_FL/FR/RL/RR → Spin), materials renamed, tail and head light meshes
+given their own materials, static meshes merged per material, empty marker nodes Exhaust_L / Exhaust_R added at
+the tailpipe outlets. Built by scripts/build-car.mjs.

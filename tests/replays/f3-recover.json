@@ -1,0 +1,62 @@
+{
+  "name": "F3 入漂后回正方向",
+  "scenario": "F3",
+  "track": "pad",
+  "start": {
+    "s": 100,
+    "kmh": 100
+  },
+  "timeline": [
+    {
+      "until": 1.5,
+      "steer": 1,
+      "throttle": 1,
+      "handbrake": true
+    },
+    {
+      "until": 9,
+      "throttle": 1
+    }
+  ],
+  "duration": 4,
+  "probes": [
+    [
+      "betaDeg",
+      1.5,
+      40,
+      46
+    ],
+    [
+      "betaDeg",
+      2.1,
+      0,
+      6
+    ],
+    [
+      "drift",
+      2.4,
+      0,
+      0
+    ],
+    [
+      "yawRateDeg",
+      2.6,
+      -1,
+      1
+    ]
+  ],
+  "expect": {
+    "driftStarts": [
+      1,
+      1
+    ],
+    "firstDriftEnd": [
+      1.8,
+      2.4
+    ],
+    "wayFlips": [
+      0,
+      0
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "F8 贴墙轻擦",
+  "scenario": "F8",
+  "track": "oval",
+  "start": {
+    "s": 100,
+    "d": -8.6,
+    "kmh": 150,
+    "headingDeg": -0.6
+  },
+  "timeline": [
+    {
+      "until": 3,
+      "throttle": 1
+    }
+  ],
+  "duration": 3,
+  "expect": {
+    "crashes": [
+      0,
+      0
+    ],
+    "maxHit": [
+      0.05,
+      3
+    ],
+    "final_kmh": [
+      60,
+      175
+    ],
+    "maxAbsD": [
+      8.8,
+      8.94
+    ]
+  }
+}

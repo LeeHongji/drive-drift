@@ -1,0 +1,491 @@
+/* Shell: start menu, loading screen, pause screen, credits, mute indicator.
+   Uses the palette and font declared in hud.css, and must be imported after it: the loading screen keeps
+   its `#loading` rules from there and adjusts them here. Sizes use clamp() so nothing needs a breakpoint
+   between a 360 px phone and an ultrawide monitor; every screen scrolls if its content is taller than the
+   viewport. */
+
+#shell [hidden] {
+  display: none !important;
+}
+
+/* ---------- shared pieces ---------- */
+
+.shell-screen {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* The top strip is kept free for the mute indicator. */
+  padding: max(48px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+}
+
+/* `margin: auto` centres the content and still lets the screen scroll from the top when it does not fit. */
+.menu-layout,
+.pause-layout,
+.credits-layout {
+  position: relative;
+  margin: auto;
+}
+
+.shell-title {
+  margin: 0;
+  font-size: clamp(52px, min(15vw, 22vh), 136px);
+  font-weight: 800;
+  font-style: italic;
+  line-height: 0.95;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+.shell-title em {
+  color: var(--accent);
+  font-style: inherit;
+}
+
+.shell-tagline {
+  margin: 10px 0 0;
+  font-size: clamp(13px, 1.6vw, 17px);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--dim);
+}
+
+.shell-heading {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 56px);
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
+
+.shell-label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+}
+
+/* :where() keeps these resets at element specificity, so the class rules below override them. */
+:where(#shell) button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  font-family: var(--font);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+:where(#shell) kbd {
+  display: inline-block;
+  min-width: 1.1em;
+  padding: 1px 6px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: center;
+  color: #0b0d0f;
+  background: var(--ink);
+  border-radius: 3px;
+}
+
+/* List-style button (pause screen, credits, error). The focused one is the selected one. */
+.shell-btn {
+  padding: 11px 18px;
+  border-left: 3px solid transparent;
+  font-size: clamp(19px, 2.6vw, 24px);
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-align: left;
+  color: var(--ink);
+  background: rgba(244, 245, 240, 0.07);
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+.shell-btn:hover {
+  background: rgba(244, 245, 240, 0.14);
+}
+.shell-btn:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-left-color: var(--accent);
+  background: rgba(215, 242, 5, 0.16);
+}
+.shell-btn:active {
+  background: rgba(215, 242, 5, 0.3);
+}
+
+/* Text-style button (the credits link on the menu). */
+.shell-link {
+  padding: 10px 2px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--dim);
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  transition: color 0.12s ease;
+}
+.shell-link:hover {
+  color: var(--ink);
+}
+.shell-link:focus {
+  color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- controls summary ---------- */
+
+.shell-controls {
+  padding: 16px 18px;
+  background: var(--panel);
+  border-left: 3px solid var(--accent);
+}
+.shell-controls-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.shell-keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 232px), 1fr));
+  gap: 7px 20px;
+  margin: 0;
+}
+.shell-keys > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.shell-keys dt {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 118px;
+}
+.shell-keys .or {
+  font-size: 12px;
+  color: var(--dim);
+}
+.shell-keys dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.shell-device {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+.shell-device b {
+  margin-right: 10px;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--ink);
+}
+@media (pointer: coarse) {
+  .shell-device.touch {
+    order: -1;
+  }
+}
+
+/* ---------- menu ---------- */
+
+#menu {
+  z-index: 12;
+  background:
+    linear-gradient(115deg, transparent 0 71%, rgba(255, 138, 31, 0.12) 71% 71.5%, transparent 71.5%),
+    linear-gradient(115deg, transparent 0 73%, rgba(215, 242, 5, 0.07) 73% 75%, transparent 75%),
+    radial-gradient(120% 90% at 50% 100%, #1b1410 0%, #0b0d0f 62%);
+}
+.shell-backdrop {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.shell-backdrop svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.shell-backdrop .edge {
+  stroke: rgba(244, 245, 240, 0.09);
+  stroke-width: 196;
+}
+.shell-backdrop .road {
+  stroke: #101418;
+  stroke-width: 184;
+}
+.shell-backdrop .mark {
+  stroke: rgba(244, 245, 240, 0.07);
+  stroke-width: 8;
+}
+
+.menu-layout {
+  width: min(100%, 1080px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(18px, 3.5vh, 36px) clamp(28px, 5vw, 72px);
+}
+.menu-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(18px, 3vh, 28px);
+}
+@media (min-width: 780px) {
+  .menu-layout {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      'head side'
+      'main side'
+      'foot foot';
+  }
+  .menu-head {
+    grid-area: head;
+  }
+  .menu-main {
+    grid-area: main;
+  }
+  .menu-side {
+    grid-area: side;
+    align-self: center;
+  }
+  .menu-foot {
+    grid-area: foot;
+  }
+}
+
+.shell-start {
+  /* Extra left padding balances the letter-spacing that trails the last character. */
+  padding: 0.5em 1.5em 0.5em 1.8em;
+  font-size: clamp(26px, 4.4vw, 40px);
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  color: #0b0d0f;
+  background: var(--accent);
+  transform: skewX(-10deg);
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+.shell-start:hover {
+  background: #e7ff3a;
+}
+.shell-start:focus {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+}
+.shell-start:active {
+  transform: skewX(-10deg) scale(0.97);
+}
+
+.quality {
+  width: min(100%, 420px);
+}
+.quality-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.quality-option {
+  padding: 11px 4px 8px;
+  border-bottom: 3px solid transparent;
+  font-size: clamp(16px, 2.2vw, 19px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--dim);
+  background: rgba(244, 245, 240, 0.07);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.quality-option:hover {
+  color: var(--ink);
+  background: rgba(244, 245, 240, 0.14);
+}
+.quality-option[aria-pressed='true'] {
+  color: #0b0d0f;
+  background: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.quality-option:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.quality-hint {
+  /* Two lines reserved so the layout does not jump between presets. */
+  min-height: 2.9em;
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--dim);
+}
+
+/* ---------- loading (base rules are in hud.css) ---------- */
+
+#loading {
+  box-sizing: border-box;
+  padding: 24px;
+  text-align: center;
+}
+#loading .shell-title {
+  font-size: clamp(52px, min(14vw, 20vh), 96px);
+}
+#loading .meter {
+  width: min(300px, 70vw);
+}
+#loading .tip {
+  width: min(560px, 100%);
+  /* Room for the longest tip on a narrow phone, so the block above does not move when tips change. */
+  min-height: 7em;
+  margin-top: 10px;
+}
+#loading .tip-text {
+  margin: 0;
+  font-size: clamp(15px, 2vw, 18px);
+  line-height: 1.55;
+  transition: opacity 0.25s ease;
+}
+#loading .tip-text.swap {
+  opacity: 0;
+}
+
+/* ---------- pause ---------- */
+
+#pause {
+  z-index: 20;
+  background: rgba(9, 11, 13, 0.78);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  animation: shell-in 0.15s ease-out;
+}
+.pause-layout {
+  width: min(100%, 900px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px clamp(28px, 5vw, 64px);
+}
+.shell-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+@media (min-width: 780px) {
+  .pause-layout {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'title side'
+      'actions side';
+  }
+  .pause-layout .shell-heading {
+    grid-area: title;
+  }
+  .shell-actions {
+    grid-area: actions;
+  }
+  .pause-side {
+    grid-area: side;
+    align-self: center;
+  }
+}
+
+/* ---------- credits ---------- */
+
+#credits {
+  z-index: 30;
+  background: rgba(9, 11, 13, 0.97);
+  animation: shell-in 0.15s ease-out;
+}
+.credits-layout {
+  width: min(100%, 680px);
+}
+.credits-layout .shell-label {
+  margin-top: 26px;
+}
+.credits-layout p {
+  margin: 0 0 8px;
+  font-size: 16px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.credits-layout a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+.credits-layout a:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.credits-layout .shell-btn {
+  min-width: 160px;
+  margin-top: 22px;
+}
+
+/* ---------- mute indicator ---------- */
+
+#muted {
+  position: fixed;
+  z-index: 40;
+  left: max(20px, env(safe-area-inset-left));
+  top: max(12px, env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  background: var(--panel);
+  border-left: 3px solid var(--orange);
+  pointer-events: none;
+}
+/* In the game the top-left corner belongs to the HUD's mode badge; sit below it. */
+#shell[data-state='playing'] #muted {
+  left: max(26px, env(safe-area-inset-left));
+  top: max(60px, env(safe-area-inset-top));
+}
+@media (pointer: coarse) {
+  #muted kbd {
+    display: none;
+  }
+}
+
+@keyframes shell-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #shell *,
+  #shell *::before,
+  #shell *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

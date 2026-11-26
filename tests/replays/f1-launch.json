@@ -1,0 +1,29 @@
+{
+  "name": "F1 静止全油门",
+  "scenario": "F1",
+  "track": "pad",
+  "start": {
+    "s": 100
+  },
+  "timeline": [
+    {
+      "until": 99,
+      "throttle": 1
+    }
+  ],
+  "duration": 12,
+  "expect": {
+    "t100": [
+      2.2,
+      2.6
+    ],
+    "t200": [
+      6.0,
+      6.8
+    ],
+    "maxAbsD": [
+      0,
+      0.01
+    ]
+  }
+}
